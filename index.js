@@ -8,12 +8,16 @@ import Twilio from "twilio";
 // Load environment variables from .env file
 dotenv.config();
 
+
+
 const {
   ELEVENLABS_AGENT_ID,
   TWILIO_ACCOUNT_SID,
   TWILIO_AUTH_TOKEN,
   TWILIO_PHONE_NUMBER,
 } = process.env;
+
+const HOST = process.env.HOST || "0.0.0.0";
 
 // Check for the required environment variables
 if (!ELEVENLABS_AGENT_ID || !TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
@@ -177,7 +181,7 @@ fastify.post("/make-outbound-call", async (request, reply) => {
 });
 
 // Start the Fastify server
-fastify.listen({ port: PORT }, (err) => {
+fastify.listen({ port: PORT, host: HOST  }, (err) => {
   if (err) {
     console.error("Error starting server:", err);
     process.exit(1);
