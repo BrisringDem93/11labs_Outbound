@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import fastifyFormBody from "@fastify/formbody";
 import fastifyWs from "@fastify/websocket";
 import Twilio from "twilio";
+import registerOutboundRoutes from './outbound.js';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -29,6 +30,8 @@ if (!ELEVENLABS_AGENT_ID || !TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO
 const fastify = Fastify();
 fastify.register(fastifyFormBody);
 fastify.register(fastifyWs);
+
+
 
 // Initialize Twilio client
 const twilioClient = Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
@@ -157,6 +160,8 @@ fastify.register(async (fastifyInstance) => {
   });
 });
 
+registerOutboundRoutes(fastify);
+
 // Route to initiate an outbound call
 fastify.post("/make-outbound-call", async (request, reply) => {
   const { to } = request.body; // Destination phone number
@@ -188,3 +193,5 @@ fastify.listen({ port: PORT, host: HOST  }, (err) => {
   }
   console.log(`[Server] Listening on port ${PORT}`);
 });
+
+
