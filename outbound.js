@@ -320,6 +320,18 @@ export default function registerOutboundRoutes(fastify) {
 
             elevenLabsWs.on("close", () => {
               console.log("[ElevenLabs] Disconnected");
+
+              if (callSid) {
+                twilioClient
+                  .calls(callSid)
+                  .update({ status: "completed" })
+                  .then(() =>
+                    console.log(`Call ${callSid} terminated successfully`),
+                  )
+                  .catch((err) =>
+                    console.error(`Error terminating call: ${err}`),
+                  );
+              }
             });
           } catch (error) {
             console.error("[ElevenLabs] Setup error:", error);
