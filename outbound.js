@@ -2,7 +2,7 @@
 import WebSocket from "ws";
 import dotenv from "dotenv";
 import Twilio from "twilio";
-import { logOutboundCall } from "./inDb.js";
+import { logOutboundCall, logElevenLabsData } from "./inDb.js";
 
 
 dotenv.config();
@@ -40,12 +40,12 @@ async function getSignedUrl() {
   }
 }
 
-// Funzione principale per registrare le route outbound
+// Main function to register outbound routes
 export default function registerOutboundRoutes(fastify) {
   // Initialize Twilio client
   const twilioClient = new Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
-  // Route to initiate outbound calls (versione unificata)
+  // Route to initiate outbound calls (unified version)
   fastify.post("/outbound-call", async (request, reply) => {
     const {
       number,
@@ -60,9 +60,9 @@ export default function registerOutboundRoutes(fastify) {
     }
 
     try {
-      // Determina se usare la configurazione avanzata o base
+      // Determine whether to use advanced or basic configuration
       if (dynamic_variables || conversation_config_override) {
-        // Formato avanzato: usa dynamic_variables e conversation_config_override
+        // Advanced format: use dynamic_variables and conversation_config_override
         const configPayload = {
           dynamic_variables: dynamic_variables || {},
           conversation_config_override: conversation_config_override || {},
@@ -86,7 +86,7 @@ export default function registerOutboundRoutes(fastify) {
           callSid: call.sid,
         });
       } else {
-        // Formato legacy: usa solo prompt e first_message
+        // Legacy format: use only prompt and first_message
         const url = `https://${request.headers.host}/outbound-call-twiml?prompt=${encodeURIComponent(
           prompt || "",
         )}&first_message=${encodeURIComponent(first_message || "")}`;
@@ -113,17 +113,17 @@ export default function registerOutboundRoutes(fastify) {
     }
   });
 
-  // TwiML route unificata per outbound calls
+  // Unified TwiML route for outbound calls
   fastify.all("/outbound-call-twiml", async (request, reply) => {
     let streamUrl, parameters;
 
-    // Determina il tipo di configurazione dalle query params
+    // Determine the type of configuration from query params
     if (request.query.config) {
-      // Modalità configurazione avanzata
+      // Advanced configuration mode
       streamUrl = `wss://${request.headers.host}/outbound-media-stream`;
       parameters = `<Parameter name="config" value="${request.query.config}" />`;
     } else {
-      // Modalità legacy
+      // Legacy mode
       const prompt = request.query.prompt || "";
       const first_message = request.query.first_message || "";
       streamUrl = `wss://${request.headers.host}/outbound-media-stream`;
@@ -143,7 +143,7 @@ export default function registerOutboundRoutes(fastify) {
     reply.type("text/xml").send(twimlResponse);
   });
 
-  // WebSocket route unificata per handling media streams
+  // Unified WebSocket route for handling media streams
   fastify.register(async (fastifyInstance) => {
     fastifyInstance.get(
       "/outbound-media-stream",
@@ -158,7 +158,7 @@ export default function registerOutboundRoutes(fastify) {
         let customParameters = null;
         let configData = null;
         let isConfigMode = false;
-        let idKeap = null; 
+        let idCrm = null; 
 
 
         // Handle WebSocket errors
@@ -172,12 +172,11 @@ export default function registerOutboundRoutes(fastify) {
 
             elevenLabsWs.on("open", () => {
               console.log("[ElevenLabs] Connected to Conversational AI");
-              // Non inviamo la configurazione ora, aspettiamo il metadata o evento start
+              // Do not send configuration now, wait for metadata or start event
             });
 
             elevenLabsWs.on("message", (data) => {
               try {
-
                 const message = JSON.parse(data);
 
                 switch (message.type) {
@@ -185,61 +184,50 @@ export default function registerOutboundRoutes(fastify) {
                     console.log("[ElevenLabs] Received initiation metadata");
                     const conversationId = message.conversation_initiation_metadata_event?.conversation_id || "unknown";
 
-                    // Logga la chiamata subito al momento della ricezione dei metadati
-                    logOutboundCall(streamSid, callSid, idKeap, ELEVENLABS_AGENT_ID, conversationId);
+                    // Log the call immediately upon receiving metadata
+                    logOutboundCall(streamSid, callSid, idCrm, ELEVENLABS_AGENT_ID, conversationId);
 
-                    // Invia la configurazione dopo aver ricevuto il metadata
+                    // Send configuration after receiving metadata
                     if (isConfigMode && configData) {
-                      // Modalità config
+                      // Config mode
                       const initialConfig = {
-                      type: "conversation_initiation_client_data",
-                      dynamic_variables: configData.dynamic_variables || {},
-                      conversation_config_override: {
-                        agent: {},
-                      },
+                        type: "conversation_initiation_client_data",
+                        dynamic_variables: configData.dynamic_variables || {},
+                        conversation_config_override: {
+                          agent: {},
+                        },
                       };
 
                       // Use config_override if provided
                       if (
-                      configData.conversation_config_override &&
-                      Object.keys(configData.conversation_config_override)
-                        .length > 0
+                        configData.conversation_config_override &&
+                        Object.keys(configData.conversation_config_override).length > 0
                       ) {
-                      initialConfig.conversation_config_override =
-                        configData.conversation_config_override;
+                        initialConfig.conversation_config_override = configData.conversation_config_override;
 
-                      // Ensure agent object always exists
-                      if (!initialConfig.conversation_config_override.agent) {
-                        initialConfig.conversation_config_override.agent = {};
-                      }
+                        // Ensure agent object always exists
+                        if (!initialConfig.conversation_config_override.agent) {
+                          initialConfig.conversation_config_override.agent = {};
+                        }
                       }
 
-                      console.log(
-                      "[ElevenLabs] Sending advanced configuration",
-                      initialConfig,
-                      );
+                      console.log("[ElevenLabs] Sending advanced configuration", initialConfig);
                       elevenLabsWs.send(JSON.stringify(initialConfig));
                     } else if (customParameters) {
-                      // Modalità legacy
+                      // Legacy mode
                       const initialConfig = {
                         type: "conversation_initiation_client_data",
                         conversation_config_override: {
                           agent: {
                             prompt: {
-                              prompt:
-                                customParameters.prompt ||
-                                "you are a gary from the phone store",
+                              prompt: customParameters.prompt || "you are a gary from the phone store",
                             },
-                            first_message:
-                              customParameters.first_message ||
-                              "hey there! how can I help you today?",
+                            first_message: customParameters.first_message || "hey there! how can I help you today?",
                           },
                         },
                       };
 
-                      console.log(
-                        "[ElevenLabs] Sending standard configuration",
-                      );
+                      console.log("[ElevenLabs] Sending standard configuration");
                       elevenLabsWs.send(JSON.stringify(initialConfig));
                     } else {
                       // Default configuration
@@ -279,9 +267,7 @@ export default function registerOutboundRoutes(fastify) {
                         ws.send(JSON.stringify(audioData));
                       }
                     } else {
-                      console.log(
-                        "[ElevenLabs] Received audio but no StreamSid yet",
-                      );
+                      console.log("[ElevenLabs] Received audio but no StreamSid yet");
                     }
                     break;
 
@@ -303,21 +289,17 @@ export default function registerOutboundRoutes(fastify) {
                     break;
 
                   case "agent_response":
-                    console.log(
-                      `[Twilio] Agent response: ${message.agent_response_event?.agent_response}`,
-                    );
+                    console.log(`[Twilio] Agent response: ${message.agent_response_event?.agent_response}`);
+                    logElevenLabsData(message.agent_response_event?.agent_response, conversationId, idCrm, "Agent");
                     break;
 
                   case "user_transcript":
-                    console.log(
-                      `[Twilio] User transcript: ${message.user_transcription_event?.user_transcript}`,
-                    );
+                    console.log(`[Twilio] User transcript: ${message.user_transcription_event?.user_transcript}`);
+                    logElevenLabsData(message.user_transcription_event?.user_transcript, conversationId, idCrm, "User");
                     break;
 
                   default:
-                    console.log(
-                      `[ElevenLabs] Unhandled message type: ${message.type}`,
-                    );
+                    console.log(`[ElevenLabs] Unhandled message type: ${message.type}`);
                 }
               } catch (error) {
                 console.error("[ElevenLabs] Error processing message:", error);
@@ -365,7 +347,7 @@ export default function registerOutboundRoutes(fastify) {
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
 
-                // Determina la modalità di configurazione
+                // Determine configuration mode
                 if (customParameters.config) {
                   isConfigMode = true;
                   try {
@@ -384,14 +366,14 @@ export default function registerOutboundRoutes(fastify) {
                   }
                 }
 
-                // Recupera i dati dalla configurazione della chiamata
+                // Retrieve call configuration data
                 const elevenAgent = ELEVENLABS_AGENT_ID || "unknown";
                 const elIdConversation = customParameters.el_id_conversation || "unknown";
-                // Recupera idKeap da dynamic_variables se in modalità avanzata, altrimenti dal legacy customParameters
+                // Retrieve idCrm from dynamic_variables if in advanced mode, otherwise from legacy customParameters.
                 if (isConfigMode && configData && configData.dynamic_variables) {
-                  idKeap = configData.dynamic_variables.id_keap || null;
+                  idCrm = configData.dynamic_variables.id_keap || null;
                 } else {
-                  idKeap = customParameters.id_keap || null;
+                  idCrm = customParameters.id_keap || null;
                 }
 
                 console.log(

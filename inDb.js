@@ -16,8 +16,10 @@ async function initializeDatabase() {
   const createElevenLabsLogsQuery  = `
     CREATE TABLE IF NOT EXISTS elevenlabs_logs (
       id SERIAL PRIMARY KEY,
-      timestamp TIMESTAMP NOT NULL,
-      raw_data TEXT NOT NULL
+      raw_data TEXT NOT NULL,
+      el_id_conversation TEXT,
+      id_keap TEXT,
+      type TEXT
     )
   `;
 
@@ -47,13 +49,13 @@ async function initializeDatabase() {
 
 initializeDatabase();
 
-export async function logElevenLabsData(data) {
+export async function logElevenLabsData(data, elIdConversation, idKeap, type) {
   try {
     const query = `
-      INSERT INTO elevenlabs_logs (timestamp, raw_data)
-      VALUES (NOW(), $1)
+      INSERT INTO elevenlabs_logs (raw_data, el_id_conversation, id_keap, type)
+      VALUES ($1, $2, $3, $4)
     `;
-    await pool.query(query, [JSON.stringify(data)]);
+    await pool.query(query, [JSON.stringify(data), elIdConversation, idKeap, type]);
     console.log('[DB] Dati salvati con successo.');
   } catch (error) {
     console.error('[DB] Errore durante il salvataggio:', error);
