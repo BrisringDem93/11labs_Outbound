@@ -2,6 +2,8 @@
 import WebSocket from "ws";
 import dotenv from "dotenv";
 import Twilio from "twilio";
+import { logOutboundCall } from "./inDb.js";
+
 
 dotenv.config();
 
@@ -173,6 +175,9 @@ export default function registerOutboundRoutes(fastify) {
 
             elevenLabsWs.on("message", (data) => {
               try {
+                // Log all received data
+                console.log("[ElevenLabs] Received data:", data);
+
                 const message = JSON.parse(data);
 
                 switch (message.type) {
@@ -355,6 +360,18 @@ export default function registerOutboundRoutes(fastify) {
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
 
+                // Recupera i dati dalla configurazione della chiamata
+                const elevenAgent = ELEVENLABS_AGENT_ID || "unknown";
+                const elIdConversation = customParameters.el_id_conversation || "unknown";
+                const idKeap = customParameters.id_keap || null;
+
+                // Logga la chiamata nel database
+                logOutboundCall(streamSid, callSid, idKeap, elevenAgent, elIdConversation);
+
+                console.log(
+                  `[Twilio] Stream started - StreamSid: ${streamSid}, CallSid: ${callSid}`
+                );
+
                 // Determina la modalità di configurazione
                 if (customParameters.config) {
                   isConfigMode = true;
@@ -374,9 +391,6 @@ export default function registerOutboundRoutes(fastify) {
                   }
                 }
 
-                console.log(
-                  `[Twilio] Stream started - StreamSid: ${streamSid}, CallSid: ${callSid}`,
-                );
                 if (!isConfigMode) {
                   console.log("[Twilio] Parameters:", customParameters);
                 }
