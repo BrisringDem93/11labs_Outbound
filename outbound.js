@@ -178,11 +178,12 @@ export default function registerOutboundRoutes(fastify) {
             elevenLabsWs.on("message", (data) => {
               try {
                 const message = JSON.parse(data);
+                let conversationId = "unknown"; // Declare conversationId in a broader scope
 
                 switch (message.type) {
                   case "conversation_initiation_metadata":
                     console.log("[ElevenLabs] Received initiation metadata");
-                    const conversationId = message.conversation_initiation_metadata_event?.conversation_id || "unknown";
+                    conversationId = message.conversation_initiation_metadata_event?.conversation_id || "unknown";
 
                     // Log the call immediately upon receiving metadata
                     logOutboundCall(streamSid, callSid, idCrm, ELEVENLABS_AGENT_ID, conversationId);
