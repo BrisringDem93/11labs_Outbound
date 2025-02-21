@@ -176,7 +176,7 @@ export default function registerOutboundRoutes(fastify) {
             elevenLabsWs.on("message", (data) => {
               try {
                 // Log all received data
-                console.log("[ElevenLabs] Received data:", data);
+                console.log("[ElevenLabs] Received data:", data.toString());
 
                 const message = JSON.parse(data);
 
@@ -188,30 +188,31 @@ export default function registerOutboundRoutes(fastify) {
                     if (isConfigMode && configData) {
                       // Modalità config
                       const initialConfig = {
-                        type: "conversation_initiation_client_data",
-                        dynamic_variables: configData.dynamic_variables || {},
-                        conversation_config_override: {
-                          agent: {},
-                        },
+                      type: "conversation_initiation_client_data",
+                      dynamic_variables: configData.dynamic_variables || {},
+                      conversation_config_override: {
+                        agent: {},
+                      },
                       };
 
                       // Use config_override if provided
                       if (
-                        configData.conversation_config_override &&
-                        Object.keys(configData.conversation_config_override)
-                          .length > 0
+                      configData.conversation_config_override &&
+                      Object.keys(configData.conversation_config_override)
+                        .length > 0
                       ) {
-                        initialConfig.conversation_config_override =
-                          configData.conversation_config_override;
+                      initialConfig.conversation_config_override =
+                        configData.conversation_config_override;
 
-                        // Ensure agent object always exists
-                        if (!initialConfig.conversation_config_override.agent) {
-                          initialConfig.conversation_config_override.agent = {};
-                        }
+                      // Ensure agent object always exists
+                      if (!initialConfig.conversation_config_override.agent) {
+                        initialConfig.conversation_config_override.agent = {};
+                      }
                       }
 
                       console.log(
-                        "[ElevenLabs] Sending advanced configuration",
+                      "[ElevenLabs] Sending advanced configuration",
+                      initialConfig,
                       );
                       elevenLabsWs.send(JSON.stringify(initialConfig));
                     } else if (customParameters) {
