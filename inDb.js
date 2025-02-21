@@ -11,6 +11,26 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+
+async function initializeDatabase() {
+  const query = `
+    CREATE TABLE IF NOT EXISTS elevenlabs_logs (
+      id SERIAL PRIMARY KEY,
+      timestamp TIMESTAMP NOT NULL,
+      raw_data TEXT NOT NULL
+    )
+  `;
+  try {
+    await pool.query(query);
+    console.log('[DB] Tabella elevenlabs_logs verificata/creata con successo.');
+  } catch (error) {
+    console.error('[DB] Errore durante l\'inizializzazione della tabella:', error);
+  }
+}
+
+
+initializeDatabase();
+
 export async function logElevenLabsData(data) {
   try {
     const query = `
@@ -23,3 +43,6 @@ export async function logElevenLabsData(data) {
     console.error('[DB] Errore durante il salvataggio:', error);
   }
 }
+
+
+export { pool };
