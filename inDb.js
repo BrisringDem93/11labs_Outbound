@@ -1,4 +1,5 @@
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -10,7 +11,6 @@ const pool = new Pool({
   password: process.env.DB_PASS,
   port: process.env.DB_PORT,
 });
-
 
 async function initializeDatabase() {
   const query = `
@@ -28,7 +28,6 @@ async function initializeDatabase() {
   }
 }
 
-
 initializeDatabase();
 
 export async function logElevenLabsData(data) {
@@ -43,6 +42,5 @@ export async function logElevenLabsData(data) {
     console.error('[DB] Errore durante il salvataggio:', error);
   }
 }
-
 
 export { pool };
