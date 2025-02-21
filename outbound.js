@@ -158,6 +158,8 @@ export default function registerOutboundRoutes(fastify) {
         let customParameters = null;
         let configData = null;
         let isConfigMode = false;
+        let idKeap = null; 
+
 
         // Handle WebSocket errors
         ws.on("error", console.error);
@@ -175,14 +177,16 @@ export default function registerOutboundRoutes(fastify) {
 
             elevenLabsWs.on("message", (data) => {
               try {
-                // Log all received data
-                console.log("[ElevenLabs] Received data:", data.toString());
 
                 const message = JSON.parse(data);
 
                 switch (message.type) {
                   case "conversation_initiation_metadata":
                     console.log("[ElevenLabs] Received initiation metadata");
+                    const conversationId = message.conversation_initiation_metadata_event?.conversation_id || "unknown";
+
+                    // Logga la chiamata subito al momento della ricezione dei metadati
+                    logOutboundCall(streamSid, callSid, idKeap, ELEVENLABS_AGENT_ID, conversationId);
 
                     // Invia la configurazione dopo aver ricevuto il metadata
                     if (isConfigMode && configData) {
@@ -364,10 +368,13 @@ export default function registerOutboundRoutes(fastify) {
                 // Recupera i dati dalla configurazione della chiamata
                 const elevenAgent = ELEVENLABS_AGENT_ID || "unknown";
                 const elIdConversation = customParameters.el_id_conversation || "unknown";
-                const idKeap = customParameters.id_keap || null;
+                 // Recupera idKeap da dynamic_variables se in modalità avanzata, altrimenti dal legacy customParameters
+                  if (isConfigMode && configData && configData.dynamic_variables) {
+                    idKeap = configData.dynamic_variables.id_keap || null;
+                  } else {
+                    idKeap = customParameters.id_keap || null;
+                  }
 
-                // Logga la chiamata nel database
-                logOutboundCall(streamSid, callSid, idKeap, elevenAgent, elIdConversation);
 
                 console.log(
                   `[Twilio] Stream started - StreamSid: ${streamSid}, CallSid: ${callSid}`
