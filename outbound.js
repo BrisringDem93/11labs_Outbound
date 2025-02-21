@@ -365,21 +365,6 @@ export default function registerOutboundRoutes(fastify) {
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
 
-                // Recupera i dati dalla configurazione della chiamata
-                const elevenAgent = ELEVENLABS_AGENT_ID || "unknown";
-                const elIdConversation = customParameters.el_id_conversation || "unknown";
-                 // Recupera idKeap da dynamic_variables se in modalità avanzata, altrimenti dal legacy customParameters
-                  if (isConfigMode && configData && configData.dynamic_variables) {
-                    idKeap = configData.dynamic_variables.id_keap || null;
-                  } else {
-                    idKeap = customParameters.id_keap || null;
-                  }
-
-
-                console.log(
-                  `[Twilio] Stream started - StreamSid: ${streamSid}, CallSid: ${callSid}`
-                );
-
                 // Determina la modalità di configurazione
                 if (customParameters.config) {
                   isConfigMode = true;
@@ -398,6 +383,20 @@ export default function registerOutboundRoutes(fastify) {
                     );
                   }
                 }
+
+                // Recupera i dati dalla configurazione della chiamata
+                const elevenAgent = ELEVENLABS_AGENT_ID || "unknown";
+                const elIdConversation = customParameters.el_id_conversation || "unknown";
+                // Recupera idKeap da dynamic_variables se in modalità avanzata, altrimenti dal legacy customParameters
+                if (isConfigMode && configData && configData.dynamic_variables) {
+                  idKeap = configData.dynamic_variables.id_keap || null;
+                } else {
+                  idKeap = customParameters.id_keap || null;
+                }
+
+                console.log(
+                  `[Twilio] Stream started - StreamSid: ${streamSid}, CallSid: ${callSid}`
+                );
 
                 if (!isConfigMode) {
                   console.log("[Twilio] Parameters:", customParameters);
