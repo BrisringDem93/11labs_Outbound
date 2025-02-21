@@ -13,7 +13,7 @@ const pool = new Pool({
 });
 
 async function initializeDatabase() {
-  const query = `
+  const createElevenLabsLogsQuery  = `
     CREATE TABLE IF NOT EXISTS elevenlabs_logs (
       id SERIAL PRIMARY KEY,
       timestamp TIMESTAMP NOT NULL,
