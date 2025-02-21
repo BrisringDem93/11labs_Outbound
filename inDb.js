@@ -19,12 +19,13 @@ async function initializeDatabase() {
       raw_data TEXT NOT NULL,
       el_id_conversation TEXT,
       id_keap TEXT,
-      type TEXT
+      type TEXT,
+      timestamp TIMESTAMP DEFAULT NOW()
     )
   `;
 
-    // Query per creare la tabella ai_outbound_logs
-    const createAiOutboundLogsQuery = `
+  // Query to create the ai_outbound_logs table
+  const createAiOutboundLogsQuery = `
     CREATE TABLE IF NOT EXISTS ai_outbound_logs (
       id SERIAL PRIMARY KEY,
       stream_sid TEXT NOT NULL,
@@ -38,12 +39,12 @@ async function initializeDatabase() {
 
   try {
     await pool.query(createElevenLabsLogsQuery);
-    console.log('[DB] Tabella elevenlabs_logs verificata/creata con successo.');
+    console.log('[DB] Table elevenlabs_logs verified/created successfully.');
 
     await pool.query(createAiOutboundLogsQuery);
-    console.log('[DB] Tabella ai_outbound_logs verificata/creata con successo.');
+    console.log('[DB] Table ai_outbound_logs verified/created successfully.');
   } catch (error) {
-    console.error('[DB] Errore durante l\'inizializzazione delle tabelle:', error);
+    console.error('[DB] Error during table initialization:', error);
   }
 }
 
@@ -52,16 +53,15 @@ initializeDatabase();
 export async function logElevenLabsData(data, elIdConversation, idKeap, type) {
   try {
     const query = `
-      INSERT INTO elevenlabs_logs (raw_data, el_id_conversation, id_keap, type)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO elevenlabs_logs (raw_data, el_id_conversation, id_keap, type, timestamp)
+      VALUES ($1, $2, $3, $4, NOW())
     `;
     await pool.query(query, [JSON.stringify(data), elIdConversation, idKeap, type]);
-    console.log('[DB] Dati salvati con successo.');
+    console.log('[DB] Data saved successfully.');
   } catch (error) {
-    console.error('[DB] Errore durante il salvataggio:', error);
+    console.error('[DB] Error saving data:', error);
   }
 }
-
 
 export async function logOutboundCall(streamSid, callSid, idKeap, elevenAgent, elIdConversation) {
   try {
@@ -71,11 +71,10 @@ export async function logOutboundCall(streamSid, callSid, idKeap, elevenAgent, e
     `;
     await pool.query(query, [streamSid, callSid, idKeap, elevenAgent, elIdConversation]);
 
-    console.log('[DB] Chiamata outbound loggata con successo.');
+    console.log('[DB] Outbound call logged successfully.');
   } catch (error) {
-    console.error('[DB] Errore durante la registrazione della chiamata outbound:', error);
+    console.error('[DB] Error logging outbound call:', error);
   }
 }
-
 
 export { pool };

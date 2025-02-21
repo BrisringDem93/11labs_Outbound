@@ -169,7 +169,7 @@ export default function registerOutboundRoutes(fastify) {
           try {
             const signedUrl = await getSignedUrl();
             elevenLabsWs = new WebSocket(signedUrl);
-
+            let conversationId = "unknown"; // Declare conversationId in a broader scope
             elevenLabsWs.on("open", () => {
               console.log("[ElevenLabs] Connected to Conversational AI");
               // Do not send configuration now, wait for metadata or start event
@@ -178,7 +178,7 @@ export default function registerOutboundRoutes(fastify) {
             elevenLabsWs.on("message", (data) => {
               try {
                 const message = JSON.parse(data);
-                let conversationId = "unknown"; // Declare conversationId in a broader scope
+
 
                 switch (message.type) {
                   case "conversation_initiation_metadata":
