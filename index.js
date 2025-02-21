@@ -1,3 +1,4 @@
+// index.js
 import Fastify from "fastify";
 import WebSocket from "ws";
 import dotenv from "dotenv";
@@ -5,6 +6,8 @@ import fastifyFormBody from "@fastify/formbody";
 import fastifyWs from "@fastify/websocket";
 import Twilio from "twilio";
 import registerOutboundRoutes from './outbound.js';
+import { logElevenLabsData } from './inDb.js';
+
 
 // Load environment variables from .env file
 dotenv.config();
@@ -90,6 +93,14 @@ fastify.register(async (fastifyInstance) => {
     });
 
     const handleElevenLabsMessage = (message, connection) => {
+      // log in db
+      try {
+        logElevenLabsData(message); // Logga il messaggio nel DB
+      } catch (error) {
+        console.error('[DB] Errore nel log dei dati:', error);
+      }
+ 
+
       switch (message.type) {
         case "conversation_initiation_metadata":
           console.info("[II] Received conversation initiation metadata.");

@@ -18,7 +18,7 @@ Follow these steps to set up and run the project:
 
 ### 1. Clone the Repository  
 ```bash
-git clone https://github.com/esplanadeai/11labs_Outbound.git
+git clone https://github.com/BrisringDem93/11labs_Outbound
 ```
 
 ### 2. Navigate to the Project Directory
@@ -38,6 +38,7 @@ ELEVENLABS_AGENT_ID=your-eleven-labs-agent-id;
 TWILIO_ACCOUNT_SID=your-twilio-account-sid;
 TWILIO_AUTH_TOKEN=your-twilio-auth-token;
 TWILIO_PHONE_NUMBER=your-twilio-phone-number;
+ELEVENLABS_API_KEY= your-eleven-labs-api-key;
 PORT=8000
 ```
 ### 5. Start the Server
@@ -45,7 +46,7 @@ PORT=8000
 node index.js
 ```
 
-### 6. Start Ngrok
+### 6. Start Ngrok (OPTIONAL)
 Expose your local server to the internet using Ngrok. Run the following command in a new terminal:
 ```bash
 ngrok http 8000
