@@ -3,7 +3,7 @@ import WebSocket from "ws";
 import dotenv from "dotenv";
 import Twilio from "twilio";
 import { logOutboundCall, logElevenLabsData } from "./inDb.js";
-
+import { sendPostRequest, logError } from "./functions.js";
 
 dotenv.config();
 
@@ -13,6 +13,7 @@ const {
   TWILIO_ACCOUNT_SID,
   TWILIO_AUTH_TOKEN,
   TWILIO_PHONE_NUMBER,
+  OUT_CONF_ENDPOINT,
 } = process.env;
 
 // Helper function to get signed URL for authenticated conversations
@@ -400,9 +401,31 @@ export default function registerOutboundRoutes(fastify) {
 
               case "stop":
                 console.log(`[Twilio] Stream ${streamSid} ended`);
+
+        // new functions 25/02/2025
+                const callDuration = Math.round((Date.now() - callStartTime) / 1000);
+                const postData = {
+                  streamSid,
+                  callSid,
+                  idCrm,
+                  duration: callDuration
+                };
+                // close websocket connection
                 if (elevenLabsWs?.readyState === WebSocket.OPEN) {
                   elevenLabsWs.close();
                 }
+
+
+                // Send API request without blocking
+                sendPostRequest(OUT_CONF_ENDPOINT, postData, callDuration)
+                  .then(response => console.log("[API] Call data sent successfully:", response))
+                  .catch(error => {
+                    console.error("[API] Failed to send call data:", error);
+                    logError(`Failed to send call data: ${error.message}`);
+                  });
+
+
+
                 break;
 
               default:

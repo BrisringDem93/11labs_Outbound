@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import fastifyFormBody from "@fastify/formbody";
 import fastifyWs from "@fastify/websocket";
 import Twilio from "twilio";
+import '/functions.js';
 import registerOutboundRoutes from './outbound.js';
 import { logElevenLabsData } from './inDb.js';
 
