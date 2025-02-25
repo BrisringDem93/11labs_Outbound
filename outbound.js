@@ -420,7 +420,7 @@ export default function registerOutboundRoutes(fastify) {
 
 
                 // Send API request without blocking
-                sendPostRequest(OUT_CONF_ENDPOINT, postData, callDuration)
+                sendPostRequest(OUT_CONF_ENDPOINT, postData, callDuration, elIdConversation)
                   .then(response => console.log("[API] Call data sent successfully:", response))
                   .catch(error => {
                     console.error("[API] Failed to send call data:", error);

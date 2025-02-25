@@ -8,13 +8,15 @@ import path from "path";
  * @param {string} endpoint - The API endpoint URL
  * @param {Object} dynamicVariables - An object containing dynamic variables to send
  * @param {number} duration - The duration of the call in seconds
+ * @param {string} conversationId - The ID of the conversation
  * @returns {Promise<Object>} - The API response
  */
-export async function sendPostRequest(endpoint, dynamicVariables, duration) {
+export async function sendPostRequest(endpoint, dynamicVariables, duration, conversationId) {
     try {
       const formData = querystring.stringify({
         ...dynamicVariables,
         duration,
+        conversation_id: conversationId, // Aggiunto conversationId come parametro
       });
   
       const response = await fetch(endpoint, {
