@@ -11,30 +11,39 @@ import path from "path";
  * @returns {Promise<Object>} - The API response
  */
 export async function sendPostRequest(endpoint, dynamicVariables, duration) {
-  try {
-    const formData = querystring.stringify({
-      ...dynamicVariables,
-      duration,
-    });
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
+    try {
+      const formData = querystring.stringify({
+        ...dynamicVariables,
+        duration,
+      });
+  
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API request failed (${response.status}): ${errorText || response.statusText}`);
+      }
+  
+      // Verifica il tipo di contenuto prima di fare il parsing JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      } else {
+        // Se non è JSON, restituisci il testo come risposta
+        const textResponse = await response.text();
+        return { success: true, message: textResponse };
+      }
+    } catch (error) {
+      logError(`API request error: ${error.message}`);
+      throw error;
     }
-
-    return await response.json();
-  } catch (error) {
-    logError(`API request error: ${error.message}`);
-    throw error;
   }
-}
 
 /**
  * Logs errors to a text file
