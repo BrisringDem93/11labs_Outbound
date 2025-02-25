@@ -159,7 +159,8 @@ export default function registerOutboundRoutes(fastify) {
         let customParameters = null;
         let configData = null;
         let isConfigMode = false;
-        let idCrm = null; 
+        let idCrm = null;
+        let callStartTime = Date.now();
 
 
         // Handle WebSocket errors
@@ -171,6 +172,7 @@ export default function registerOutboundRoutes(fastify) {
             const signedUrl = await getSignedUrl();
             elevenLabsWs = new WebSocket(signedUrl);
             let conversationId = "unknown"; // Declare conversationId in a broader scope
+
             elevenLabsWs.on("open", () => {
               console.log("[ElevenLabs] Connected to Conversational AI");
               // Do not send configuration now, wait for metadata or start event
@@ -346,6 +348,7 @@ export default function registerOutboundRoutes(fastify) {
             switch (msg.event) {
               case "start":
                 streamSid = msg.start.streamSid;
+                callStartTime = Date.now();
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
 
