@@ -161,7 +161,8 @@ export default function registerOutboundRoutes(fastify) {
         let isConfigMode = false;
         let idCrm = null;
         let callStartTime = Date.now();
-        let conversationId = "unknown";
+        let conversationId = "";
+        console.log(`[Initialization] conversationId declared: ${conversationId}`);
 
 
         // Handle WebSocket errors
@@ -172,7 +173,7 @@ export default function registerOutboundRoutes(fastify) {
           try {
             const signedUrl = await getSignedUrl();
             elevenLabsWs = new WebSocket(signedUrl);
-            let conversationId = "unknown"; // Declare conversationId in a broader scope
+            let conversationId = ""; // Declare conversationId in a broader scope
 
             elevenLabsWs.on("open", () => {
               console.log("[ElevenLabs] Connected to Conversational AI");
@@ -188,6 +189,7 @@ export default function registerOutboundRoutes(fastify) {
                   case "conversation_initiation_metadata":
                     console.log("[ElevenLabs] Received initiation metadata");
                     conversationId = message.conversation_initiation_metadata_event?.conversation_id || "unknown";
+                    console.log(`[ElevenLabs] conversationId changed: ${conversationId}`);
 
                     // Log the call immediately upon receiving metadata
                     logOutboundCall(streamSid, callSid, idCrm, ELEVENLABS_AGENT_ID, conversationId);
@@ -352,6 +354,7 @@ export default function registerOutboundRoutes(fastify) {
                 callStartTime = Date.now();
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
+                console.log(`[Twilio] conversationId Start event: ${conversationId}`);
 
                 // Determine configuration mode
                 if (customParameters.config) {
