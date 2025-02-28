@@ -373,7 +373,7 @@ export default function registerOutboundRoutes(fastify) {
 
                 // Retrieve call configuration data
                 const elevenAgent = ELEVENLABS_AGENT_ID || "unknown";
-                const elIdConversation = customParameters.el_id_conversation || "unknown";
+
                 // Retrieve idCrm from dynamic_variables if in advanced mode, otherwise from legacy customParameters.
                 if (isConfigMode && configData && configData.dynamic_variables) {
                   idCrm = configData.dynamic_variables.id_keap || null;
@@ -420,7 +420,7 @@ export default function registerOutboundRoutes(fastify) {
 
 
                 // Send API request without blocking
-                sendPostRequest(OUT_CONF_ENDPOINT, postData, callDuration, elIdConversation, process.env.OUT_CONF_BACKUP_ENDPOINT)
+                sendPostRequest(OUT_CONF_ENDPOINT, postData, callDuration, conversationId, process.env.OUT_CONF_BACKUP_ENDPOINT)
                 .then(response => console.log("[API] Call data sent successfully:", response))
                 .catch(error => {
                   console.error("[API] Both primary and backup endpoints failed:", error);
