@@ -161,6 +161,7 @@ export default function registerOutboundRoutes(fastify) {
         let isConfigMode = false;
         let idCrm = null;
         let callStartTime = Date.now();
+        let conversationId = "unknown";
 
 
         // Handle WebSocket errors
