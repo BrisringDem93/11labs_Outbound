@@ -173,7 +173,6 @@ export default function registerOutboundRoutes(fastify) {
           try {
             const signedUrl = await getSignedUrl();
             elevenLabsWs = new WebSocket(signedUrl);
-            let conversationId = ""; // Declare conversationId in a broader scope
 
             elevenLabsWs.on("open", () => {
               console.log("[ElevenLabs] Connected to Conversational AI");
