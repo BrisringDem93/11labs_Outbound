@@ -377,9 +377,7 @@ export default function registerOutboundRoutes(fastify) {
                 }
 
                 // Retrieve call configuration data
-                const agentId = (isConfigMode && configData?.dynamic_variables?.agent_id) 
-                ? configData.dynamic_variables.agent_id 
-                : ELEVENLABS_AGENT_ID;
+                const agentId = customParameters.agent_id || ELEVENLABS_AGENT_ID;
                 console.log(`[Configuration] Using agentId: ${agentId}`);
             
                 // Retrieve idCrm from dynamic_variables if in advanced mode, otherwise from legacy customParameters.
