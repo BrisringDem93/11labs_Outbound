@@ -17,11 +17,10 @@ const {
 } = process.env;
 
 // Helper function to get signed URL for authenticated conversations
-async function getSignedUrl(agentId) {  // Accetta agentId come parametro
+async function getSignedUrl() {
   try {
     const response = await fetch(
-      console.log("[agenti id: " + agentId)
-      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
+      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${ELEVENLABS_AGENT_ID}`,
       {
         method: "GET",
         headers: {
@@ -29,7 +28,6 @@ async function getSignedUrl(agentId) {  // Accetta agentId come parametro
         },
       },
     );
-
 
     if (!response.ok) {
       throw new Error(`Failed to get signed URL: ${response.statusText}`);
