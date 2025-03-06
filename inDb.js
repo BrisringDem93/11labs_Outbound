@@ -24,7 +24,6 @@ async function initializeDatabase() {
     )
   `;
 
-  // Query to create the ai_outbound_logs table
   const createAiOutboundLogsQuery = `
     CREATE TABLE IF NOT EXISTS ai_outbound_logs (
       id SERIAL PRIMARY KEY,
@@ -37,12 +36,40 @@ async function initializeDatabase() {
     )
   `;
 
+  const createResultsCallsQuery = `
+    CREATE TABLE IF NOT EXISTS results_calls (
+      id SERIAL PRIMARY KEY,
+      id_conversation TEXT NOT NULL,
+      call_successful BOOLEAN ,
+      transcript_summary TEXT,
+      timestamp TIMESTAMP DEFAULT NOW()
+    )
+  `;
+
+  const createAiTasksQuery = `
+    CREATE TABLE IF NOT EXISTS ai_tasks (
+      id SERIAL PRIMARY KEY,
+      id_keap TEXT NOT NULL,
+      task_type TEXT NOT NULL,
+      due_date TIMESTAMP,
+      done BOOLEAN DEFAULT FALSE
+)`; 
+
+
   try {
     await pool.query(createElevenLabsLogsQuery);
     console.log('[DB] Table elevenlabs_logs verified/created successfully.');
 
     await pool.query(createAiOutboundLogsQuery);
     console.log('[DB] Table ai_outbound_logs verified/created successfully.');
+
+    await pool.query(createResultsCallsQuery);
+    console.log('[DB] Table results_calls verified/created successfully.');
+    
+    await pool.query(createResultsCallsQuery);
+    console.log('[DB] Table ai_tasks verified/created successfully.');
+
+
   } catch (error) {
     console.error('[DB] Error during table initialization:', error);
   }
@@ -76,5 +103,20 @@ export async function logOutboundCall(streamSid, callSid, idKeap, elevenAgent, e
     console.error('[DB] Error logging outbound call:', error);
   }
 }
+
+
+export async function logCallResult(idConversation, callSuccessful, transcriptSummary) {
+  try {
+    const query = `
+      INSERT INTO results_calls (id_conversation, call_successful, transcript_summary, timestamp)
+      VALUES ($1, $2, $3, NOW())
+    `;
+    await pool.query(query, [idConversation, callSuccessful, transcriptSummary]);
+    console.log('[DB] Call result logged successfully.');
+  } catch (error) {
+    console.error('[DB] Error logging call result:', error);
+  }
+}
+
 
 export { pool };

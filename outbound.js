@@ -2,7 +2,7 @@
 import WebSocket from "ws";
 import dotenv from "dotenv";
 import Twilio from "twilio";
-import { logOutboundCall, logElevenLabsData } from "./inDb.js";
+import { logOutboundCall, logElevenLabsData, logCallResult } from "./inDb.js";
 import { sendPostRequest, logError } from "./functions.js";
 
 dotenv.config();
@@ -375,8 +375,9 @@ export default function registerOutboundRoutes(fastify) {
                 }
 
                 // Retrieve call configuration data
-                const elevenAgent = ELEVENLABS_AGENT_ID || "unknown";
-
+                const agentId = customParameters.agent_id || ELEVENLABS_AGENT_ID;
+                console.log(`[Configuration] Using agentId: ${agentId}`);
+            
                 // Retrieve idCrm from dynamic_variables if in advanced mode, otherwise from legacy customParameters.
                 if (isConfigMode && configData && configData.dynamic_variables) {
                   idCrm = configData.dynamic_variables.id_keap || null;
@@ -421,7 +422,7 @@ export default function registerOutboundRoutes(fastify) {
                   elevenLabsWs.close();
                 }
 
-
+                logCallResult(conversationId, null, "awaiting process");
                 // Send API request without blocking
                 sendPostRequest(OUT_CONF_ENDPOINT, postData, callDuration, conversationId, process.env.OUT_CONF_BACKUP_ENDPOINT)
                 .then(response => console.log("[API] Call data sent successfully:", response))
