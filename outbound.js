@@ -20,6 +20,7 @@ const {
 async function getSignedUrl(agentId) {  // Accetta agentId come parametro
   try {
     const response = await fetch(
+      console.log("[agenti id: " + agentId)
       `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
       {
         method: "GET",
