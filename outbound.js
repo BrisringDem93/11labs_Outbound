@@ -173,7 +173,7 @@ export default function registerOutboundRoutes(fastify) {
         // Set up ElevenLabs connection
         const setupElevenLabs = async () => {
           try {
-            const signedUrl = await getSignedUrl();
+            const signedUrl = await getSignedUrl(agentId);
             elevenLabsWs = new WebSocket(signedUrl);
 
             elevenLabsWs.on("open", () => {
