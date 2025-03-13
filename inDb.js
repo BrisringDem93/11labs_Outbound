@@ -66,7 +66,7 @@ async function initializeDatabase() {
     await pool.query(createResultsCallsQuery);
     console.log('[DB] Table results_calls verified/created successfully.');
     
-    await pool.query(createResultsCallsQuery);
+    await pool.query(createAiTasksQuery);
     console.log('[DB] Table ai_tasks verified/created successfully.');
 
 
