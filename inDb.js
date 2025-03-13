@@ -53,7 +53,8 @@ async function initializeDatabase() {
       task_type TEXT NOT NULL,
       due_date TIMESTAMP,
       done BOOLEAN DEFAULT FALSE
-)`; 
+)
+`; 
 
 
   try {
