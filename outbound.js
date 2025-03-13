@@ -87,11 +87,29 @@ export default function registerOutboundRoutes(fastify) {
         ).toString("base64");
         const urlSafeConfig = encodeURIComponent(encodedConfig);
 
-        const call = await twilioClient.calls.create({
-          from: TWILIO_PHONE_NUMBER,
-          to: number,
-          url: `https://${request.headers.host}/outbound-call-twiml?config=${urlSafeConfig}`,
-        });
+        try {
+          const call = await twilioClient.calls.create({
+            from: TWILIO_PHONE_NUMBER,
+            to: number,
+            url: `https://${request.headers.host}/outbound-call-twiml?config=${urlSafeConfig}`,
+          });
+        
+          console.log(`[API] Outbound call initiated successfully - CallSid: ${call.sid}`);
+          reply.send({
+            success: true,
+            message: "Call initiated successfully",
+            callSid: call.sid,
+          });
+        } catch (error) {
+          console.error(`[API ERROR] Failed to initiate outbound call: ${error.message}`);
+          console.error(`[API ERROR] Details: ${JSON.stringify(error, null, 2)}`);
+        
+          reply.code(500).send({
+            success: false,
+            error: "Failed to initiate call",
+            details: error.message,
+          });
+        }
 
         reply.send({
           success: true,
