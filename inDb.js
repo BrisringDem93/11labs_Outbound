@@ -56,13 +56,13 @@ async function initializeDatabase() {
 )
 `; 
 
-const createAiRequestCalls = `
-CREATE TABLE IF NOT EXISTS ai_tasks (
-  id SERIAL PRIMARY KEY,
-  id_keap TEXT NOT NULL,
-  call_sid TEXT NOT NULL
-)
-`; 
+    const createAiRequestCalls = `
+    CREATE TABLE IF NOT EXISTS aiRequestCalls (
+      id SERIAL PRIMARY KEY,
+      id_keap TEXT NOT NULL,
+      call_sid TEXT NOT NULL
+    )
+    `; 
 
 
   try {
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS ai_tasks (
     console.log('[DB] Table ai_tasks verified/created successfully.');
 
     await pool.query(createAiRequestCalls);
-    console.log('[DB] Table ai_tasks verified/created successfully.');
+    console.log('[DB] Table AiRequestCalls verified/created successfully.');
 
 
   } catch (error) {
