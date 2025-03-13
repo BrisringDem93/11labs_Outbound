@@ -56,6 +56,14 @@ async function initializeDatabase() {
 )
 `; 
 
+const createAiRequestCalls = `
+CREATE TABLE IF NOT EXISTS ai_tasks (
+  id SERIAL PRIMARY KEY,
+  id_keap TEXT NOT NULL,
+  call_sid TEXT NOT NULL
+)
+`; 
+
 
   try {
     await pool.query(createElevenLabsLogsQuery);

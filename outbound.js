@@ -104,7 +104,7 @@ export default function registerOutboundRoutes(fastify) {
           console.error(`[API ERROR] Failed to initiate outbound call: ${error.message}`);
           console.error(`[API ERROR] Details: ${JSON.stringify(error, null, 2)}`);
         
-          reply.code(500).send({
+          reply.code(403).send({
             success: false,
             error: "Failed to initiate call",
             details: error.message,
