@@ -78,6 +78,9 @@ CREATE TABLE IF NOT EXISTS ai_tasks (
     await pool.query(createAiTasksQuery);
     console.log('[DB] Table ai_tasks verified/created successfully.');
 
+    await pool.query(createAiRequestCalls);
+    console.log('[DB] Table ai_tasks verified/created successfully.');
+
 
   } catch (error) {
     console.error('[DB] Error during table initialization:', error);
