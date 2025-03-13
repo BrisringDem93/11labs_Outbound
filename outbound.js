@@ -2,8 +2,11 @@
 import WebSocket from "ws";
 import dotenv from "dotenv";
 import Twilio from "twilio";
+
 import { logOutboundCall, logElevenLabsData, logCallResult } from "./inDb.js";
 import { sendPostRequest, logError } from "./functions.js";
+
+
 
 dotenv.config();
 
@@ -41,12 +44,19 @@ async function getSignedUrl() {
   }
 }
 
+
 // Main function to register outbound routes
+
+
 export default function registerOutboundRoutes(fastify) {
   // Initialize Twilio client
   const twilioClient = new Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
+
   // Route to initiate outbound calls (unified version)
+
+
+
   fastify.post("/outbound-call", async (request, reply) => {
     const {
       number,
@@ -61,9 +71,11 @@ export default function registerOutboundRoutes(fastify) {
     }
 
     try {
+
       // Determine whether to use advanced or basic configuration
       if (dynamic_variables || conversation_config_override) {
         // Advanced format: use dynamic_variables and conversation_config_override
+
         const configPayload = {
           dynamic_variables: dynamic_variables || {},
           conversation_config_override: conversation_config_override || {},
@@ -87,7 +99,9 @@ export default function registerOutboundRoutes(fastify) {
           callSid: call.sid,
         });
       } else {
+
         // Legacy format: use only prompt and first_message
+
         const url = `https://${request.headers.host}/outbound-call-twiml?prompt=${encodeURIComponent(
           prompt || "",
         )}&first_message=${encodeURIComponent(first_message || "")}`;
@@ -114,6 +128,7 @@ export default function registerOutboundRoutes(fastify) {
     }
   });
 
+
   // Unified TwiML route for outbound calls
   fastify.all("/outbound-call-twiml", async (request, reply) => {
     let streamUrl, parameters;
@@ -125,6 +140,7 @@ export default function registerOutboundRoutes(fastify) {
       parameters = `<Parameter name="config" value="${request.query.config}" />`;
     } else {
       // Legacy mode
+
       const prompt = request.query.prompt || "";
       const first_message = request.query.first_message || "";
       streamUrl = `wss://${request.headers.host}/outbound-media-stream`;
@@ -144,7 +160,9 @@ export default function registerOutboundRoutes(fastify) {
     reply.type("text/xml").send(twimlResponse);
   });
 
+
   // Unified WebSocket route for handling media streams
+
   fastify.register(async (fastifyInstance) => {
     fastifyInstance.get(
       "/outbound-media-stream",
@@ -165,6 +183,7 @@ export default function registerOutboundRoutes(fastify) {
         console.log(`[Initialization] conversationId declared: ${conversationId}`);
 
 
+
         // Handle WebSocket errors
         ws.on("error", console.error);
 
@@ -176,12 +195,15 @@ export default function registerOutboundRoutes(fastify) {
 
             elevenLabsWs.on("open", () => {
               console.log("[ElevenLabs] Connected to Conversational AI");
+
               // Do not send configuration now, wait for metadata or start event
+
             });
 
             elevenLabsWs.on("message", (data) => {
               try {
                 const message = JSON.parse(data);
+
 
 
                 switch (message.type) {
@@ -196,6 +218,9 @@ export default function registerOutboundRoutes(fastify) {
                     // Send configuration after receiving metadata
                     if (isConfigMode && configData) {
                       // Config mode
+
+
+
                       const initialConfig = {
                         type: "conversation_initiation_client_data",
                         dynamic_variables: configData.dynamic_variables || {},
@@ -207,9 +232,11 @@ export default function registerOutboundRoutes(fastify) {
                       // Use config_override if provided
                       if (
                         configData.conversation_config_override &&
+
                         Object.keys(configData.conversation_config_override).length > 0
                       ) {
                         initialConfig.conversation_config_override = configData.conversation_config_override;
+
 
                         // Ensure agent object always exists
                         if (!initialConfig.conversation_config_override.agent) {
@@ -217,15 +244,18 @@ export default function registerOutboundRoutes(fastify) {
                         }
                       }
 
+
                       console.log("[ElevenLabs] Sending advanced configuration", initialConfig);
                       elevenLabsWs.send(JSON.stringify(initialConfig));
                     } else if (customParameters) {
                       // Legacy mode
+
                       const initialConfig = {
                         type: "conversation_initiation_client_data",
                         conversation_config_override: {
                           agent: {
                             prompt: {
+
                               prompt: customParameters.prompt || "you are a gary from the phone store",
                             },
                             first_message: customParameters.first_message || "hey there! how can I help you today?",
@@ -306,6 +336,7 @@ export default function registerOutboundRoutes(fastify) {
 
                   default:
                     console.log(`[ElevenLabs] Unhandled message type: ${message.type}`);
+
                 }
               } catch (error) {
                 console.error("[ElevenLabs] Error processing message:", error);
@@ -350,12 +381,14 @@ export default function registerOutboundRoutes(fastify) {
             switch (msg.event) {
               case "start":
                 streamSid = msg.start.streamSid;
+
                 callStartTime = Date.now();
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
                 console.log(`[Twilio] conversationId Start event: ${conversationId}`);
 
                 // Determine configuration mode
+
                 if (customParameters.config) {
                   isConfigMode = true;
                   try {
@@ -374,6 +407,7 @@ export default function registerOutboundRoutes(fastify) {
                   }
                 }
 
+
                 // Retrieve call configuration data
                 const agentId = customParameters.agent_id || ELEVENLABS_AGENT_ID;
                 console.log(`[Configuration] Using agentId: ${agentId}`);
@@ -388,6 +422,7 @@ export default function registerOutboundRoutes(fastify) {
                 console.log(
                   `[Twilio] Stream started - StreamSid: ${streamSid}, CallSid: ${callSid}`
                 );
+
 
                 if (!isConfigMode) {
                   console.log("[Twilio] Parameters:", customParameters);
@@ -408,6 +443,7 @@ export default function registerOutboundRoutes(fastify) {
 
               case "stop":
                 console.log(`[Twilio] Stream ${streamSid} ended`);
+
 
         // new functions 25/02/2025
                 const callDuration = Math.round((Date.now() - callStartTime) / 1000);
@@ -430,6 +466,7 @@ export default function registerOutboundRoutes(fastify) {
                   console.error("[API] Both primary and backup endpoints failed:", error);
                   logError(`Final API failure: ${error.message}`);
                 });           
+
 
                 break;
 
