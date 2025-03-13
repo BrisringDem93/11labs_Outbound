@@ -42,7 +42,8 @@ async function initializeDatabase() {
       id_conversation TEXT NOT NULL,
       call_successful BOOLEAN ,
       transcript_summary TEXT,
-      timestamp TIMESTAMP DEFAULT NOW()
+      timestamp TIMESTAMP DEFAULT NOW(),
+      secretary BOOLEAN DEFAULT FALSE
     )
   `;
 
@@ -60,7 +61,9 @@ async function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS aiRequestCalls (
       id SERIAL PRIMARY KEY,
       id_keap TEXT NOT NULL,
-      call_sid TEXT NOT NULL
+      call_sid TEXT NOT NULL,
+      timestamp TIMESTAMP DEFAULT NOW(),
+      checked BOOLEAN DEFAULT FALSE
     )
     `; 
 
