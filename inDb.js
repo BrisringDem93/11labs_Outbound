@@ -50,7 +50,7 @@ async function initializeDatabase() {
   const createAiTasksQuery = `
     CREATE TABLE IF NOT EXISTS ai_tasks (
       id SERIAL PRIMARY KEY,
-      id_keap TEXT NOT NULL,
+      id_keap TEXT UNIQUE NOT NULL,
       task_type TEXT NOT NULL,
       due_date TIMESTAMP,
       done BOOLEAN DEFAULT FALSE
@@ -66,6 +66,15 @@ async function initializeDatabase() {
       checked BOOLEAN DEFAULT FALSE
     )
     `; 
+
+    const createTaskAttemps = `
+    CREATE TABLE IF NOT EXISTS taskAttemps (
+      id_keap TEXT NOT NULL PRIMARY KEY,
+      attempts INTEGER DEFAULT 1,
+      updated TIMESTAMP DEFAULT NOW()
+    )
+    `; 
+
 
 
   try {
@@ -105,17 +114,23 @@ export async function logElevenLabsData(data, elIdConversation, idKeap, type) {
   }
 }
 
-export async function logOutboundCall(streamSid, callSid, idKeap, elevenAgent, elIdConversation) {
+
+export async function logOutboundCall(callSid, elevenAgent, elIdConversation) {
   try {
     const query = `
-      INSERT INTO ai_outbound_logs (stream_sid, call_sid, id_keap, eleven_agent, el_id_conversation)
-      VALUES ($1, $2, $3, $4, $5)
+      UPDATE ai_outbound_logs
+      SET eleven_agent = $1, el_id_conversation = $2
+      WHERE call_sid = $3
     `;
-    await pool.query(query, [streamSid, callSid, idKeap, elevenAgent, elIdConversation]);
+    const result = await pool.query(query, [elevenAgent, elIdConversation, callSid]);
 
-    console.log('[DB] Outbound call logged successfully.');
+    if (result.rowCount === 0) {
+      console.warn(`[DB] No matching record found for callSid: ${callSid}`);
+    } else {
+      console.log('[DB] Outbound call updated successfully.');
+    }
   } catch (error) {
-    console.error('[DB] Error logging outbound call:', error);
+    console.error('[DB] Error updating outbound call:', error);
   }
 }
 
@@ -130,6 +145,19 @@ export async function logCallResult(idConversation, callSuccessful, transcriptSu
     console.log('[DB] Call result logged successfully.');
   } catch (error) {
     console.error('[DB] Error logging call result:', error);
+  }
+}
+
+export async function logOutboundCallStart(streamSid, callSid, idKeap) {
+  try {
+    const query = `
+      INSERT INTO ai_outbound_logs (stream_sid, call_sid, id_keap)
+      VALUES ($1, $2, $3)
+    `;
+    await pool.query(query, [streamSid, callSid, idKeap]);
+    console.log('[DB] Outbound call start logged successfully.');
+  } catch (error) {
+    console.error('[DB] Error logging outbound call start:', error);
   }
 }
 

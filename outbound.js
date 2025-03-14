@@ -198,8 +198,6 @@ export default function registerOutboundRoutes(fastify) {
         let idCrm = null;
         let callStartTime = Date.now();
         let conversationId = "";
-        console.log(`[Initialization] conversationId declared: ${conversationId}`);
-
 
 
         // Handle WebSocket errors
@@ -231,7 +229,7 @@ export default function registerOutboundRoutes(fastify) {
                     console.log(`[ElevenLabs] conversationId changed: ${conversationId}`);
 
                     // Log the call immediately upon receiving metadata
-                    logOutboundCall(streamSid, callSid, idCrm, ELEVENLABS_AGENT_ID, conversationId);
+                    logOutboundCall(callSid, ELEVENLABS_AGENT_ID, conversationId);
 
                     // Send configuration after receiving metadata
                     if (isConfigMode && configData) {
@@ -403,7 +401,6 @@ export default function registerOutboundRoutes(fastify) {
                 callStartTime = Date.now();
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
-                console.log(`[Twilio] conversationId Start event: ${conversationId}`);
 
                 // Determine configuration mode
 
@@ -445,6 +442,10 @@ export default function registerOutboundRoutes(fastify) {
                 if (!isConfigMode) {
                   console.log("[Twilio] Parameters:", customParameters);
                 }
+                // **Log initial call start (NEW)**
+                logOutboundCallStart(streamSid, callSid, idCrm);
+
+
                 break;
 
               case "media":
