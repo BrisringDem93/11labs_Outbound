@@ -72,6 +72,7 @@ async function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS taskAttemps (
       id_keap TEXT NOT NULL PRIMARY KEY,
       attempts INTEGER DEFAULT 1,
+      objective TEXT,
       updated TIMESTAMP DEFAULT NOW()
     )
     `; 
