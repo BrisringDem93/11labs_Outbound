@@ -3,7 +3,7 @@ import WebSocket from "ws";
 import dotenv from "dotenv";
 import Twilio from "twilio";
 
-import { logOutboundCall, logElevenLabsData, logCallResult } from "./inDb.js";
+import { logOutboundCall, logElevenLabsData, logCallResult, logOutboundCallStart } from "./inDb.js";
 import { sendPostRequest, logError } from "./functions.js";
 
 
