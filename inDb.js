@@ -63,7 +63,8 @@ async function initializeDatabase() {
       id_keap TEXT NOT NULL,
       call_sid TEXT NOT NULL,
       timestamp TIMESTAMP DEFAULT NOW(),
-      checked BOOLEAN DEFAULT FALSE
+      checked BOOLEAN DEFAULT FALSE,
+      objective TEXT
     )
     `; 
 
@@ -76,7 +77,7 @@ async function initializeDatabase() {
     `; 
 
 
-
+  
   try {
     await pool.query(createElevenLabsLogsQuery);
     console.log('[DB] Table elevenlabs_logs verified/created successfully.');
@@ -92,6 +93,9 @@ async function initializeDatabase() {
 
     await pool.query(createAiRequestCalls);
     console.log('[DB] Table AiRequestCalls verified/created successfully.');
+
+    await pool.query(createTaskAttemps);
+    console.log('[DB] Table taskAttemps verified/created successfully.');
 
 
   } catch (error) {
