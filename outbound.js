@@ -111,11 +111,6 @@ export default function registerOutboundRoutes(fastify) {
           });
         }
 
-        reply.send({
-          success: true,
-          message: "Call initiated with advanced configuration",
-          callSid: call.sid,
-        });
       } else {
 
         // Legacy format: use only prompt and first_message
