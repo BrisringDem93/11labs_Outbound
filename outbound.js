@@ -20,10 +20,10 @@ const {
 } = process.env;
 
 // Helper function to get signed URL for authenticated conversations
-async function getSignedUrl() {
+async function getSignedUrl(agent_id) {
   try {
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${ELEVENLABS_AGENT_ID}`,
+      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agent_id}`,
       {
         method: "GET",
         headers: {
@@ -64,11 +64,16 @@ export default function registerOutboundRoutes(fastify) {
       first_message,
       dynamic_variables,
       conversation_config_override,
+      agent_id
     } = request.body;
 
     if (!number) {
       return reply.code(400).send({ error: "Phone number is required" });
     }
+  
+    if (!agent_id) {
+      return reply.code(400).send({ error: "Agent ID is required" });
+  }
 
     try {
 
@@ -203,7 +208,7 @@ export default function registerOutboundRoutes(fastify) {
         // Set up ElevenLabs connection
         const setupElevenLabs = async () => {
           try {
-            const signedUrl = await getSignedUrl();
+            const signedUrl = await getSignedUrl(agent_id);
             elevenLabsWs = new WebSocket(signedUrl);
 
             elevenLabsWs.on("open", () => {
