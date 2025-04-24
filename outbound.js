@@ -72,9 +72,11 @@ export default function registerOutboundRoutes(fastify) {
     }
   
     if (!agent_id) {
-      return reply.code(400).send({ error: "Agent ID is required" });
+      return reply.code(400).send({
+          error: "Agent ID is required",
+          requestBody: request.body  // Includi request.body nella risposta
+      });
   }
-
     try {
 
       // Determine whether to use advanced or basic configuration
