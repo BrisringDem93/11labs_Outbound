@@ -19,7 +19,6 @@ const {
   OUT_CONF_ENDPOINT,
 } = process.env;
 
-let agent_id = null; 
 
 // Helper function to get signed URL for authenticated conversations
 async function getSignedUrl(agent_id) {
@@ -66,24 +65,19 @@ export default function registerOutboundRoutes(fastify) {
       first_message,
       dynamic_variables,
       conversation_config_override,
-      agent_id: incoming_agent_id, 
+      agent_id
     } = request.body;
 
     if (!number) {
       return reply.code(400).send({ error: "Phone number is required" });
     }
     
-    if (!incoming_agent_id) {
+    if (!agent_id) {
       return reply.code(400).send({
           error: "Agent ID is required",
           requestBody: request.body  // Includi request.body nella risposta
       });
   }
-
-    // 👇 sovrascrivi la variabile globale
-    agent_id = incoming_agent_id;
-    console.log(`[POST] agent_id impostato a: ${agent_id}`);
-
     try {
 
       // Determine whether to use advanced or basic configuration
@@ -395,7 +389,7 @@ export default function registerOutboundRoutes(fastify) {
         };
 
         // Set up ElevenLabs connection
-        setupElevenLabs();
+        setupElevenLabs(agent_id);
 
         // Handle messages from Twilio
         ws.on("message", (message) => {
@@ -412,6 +406,7 @@ export default function registerOutboundRoutes(fastify) {
                 callStartTime = Date.now();
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
+                const agentId = customParameters.agent_id 
                 console.log(`[Twilio] conversationId Start event: ${conversationId}`);
 
                 // Determine configuration mode
