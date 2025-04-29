@@ -388,8 +388,7 @@ export default function registerOutboundRoutes(fastify) {
           }
         };
 
-        // Set up ElevenLabs connection
-        setupElevenLabs(agent_id);
+
 
         // Handle messages from Twilio
         ws.on("message", (message) => {
@@ -429,10 +428,13 @@ export default function registerOutboundRoutes(fastify) {
                   }
                 }
 
-
+                
                 // Retrieve call configuration data
                 console.log(`[Configuration] Using agentId: ${agent_id}`);
-            
+                
+                // Set up ElevenLabs connection
+                setupElevenLabs(agent_id);
+
                 // Retrieve idCrm from dynamic_variables if in advanced mode, otherwise from legacy customParameters.
                 if (isConfigMode && configData && configData.dynamic_variables) {
                   idCrm = configData.dynamic_variables.id_keap || null;
