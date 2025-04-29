@@ -19,6 +19,8 @@ const {
   OUT_CONF_ENDPOINT,
 } = process.env;
 
+let agent_id = null; 
+
 // Helper function to get signed URL for authenticated conversations
 async function getSignedUrl(agent_id) {
   try {
@@ -64,19 +66,24 @@ export default function registerOutboundRoutes(fastify) {
       first_message,
       dynamic_variables,
       conversation_config_override,
-      agent_id
+      agent_id: incoming_agent_id, 
     } = request.body;
 
     if (!number) {
       return reply.code(400).send({ error: "Phone number is required" });
     }
     
-    if (!agent_id) {
+    if (!incoming_agent_id) {
       return reply.code(400).send({
           error: "Agent ID is required",
           requestBody: request.body  // Includi request.body nella risposta
       });
   }
+
+    // 👇 sovrascrivi la variabile globale
+    agent_id = incoming_agent_id;
+    console.log(`[POST] agent_id impostato a: ${agent_id}`);
+
     try {
 
       // Determine whether to use advanced or basic configuration
