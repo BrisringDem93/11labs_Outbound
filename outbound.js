@@ -85,7 +85,7 @@ export default function registerOutboundRoutes(fastify) {
         // Advanced format: use dynamic_variables and conversation_config_override
 
         const configPayload = {
-          dynamic_variables: dynamic_variables || {},
+          dynamic_variables: {...dynamic_variables, agent_id},
           conversation_config_override: conversation_config_override || {},
         };
 
@@ -405,7 +405,6 @@ export default function registerOutboundRoutes(fastify) {
                 callStartTime = Date.now();
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
-                const agent_id = customParameters.agent_id 
                 console.log(`[Twilio] conversationId Start event: ${conversationId}`);
 
                 // Determine configuration mode
@@ -428,7 +427,8 @@ export default function registerOutboundRoutes(fastify) {
                   }
                 }
 
-                
+                const agent_id = configData?.dynamic_variables?.agent_id;
+
                 // Retrieve call configuration data
                 console.log(`[Configuration] Using agentId: ${agent_id}`);
                 
