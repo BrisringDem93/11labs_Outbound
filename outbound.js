@@ -209,7 +209,7 @@ export default function registerOutboundRoutes(fastify) {
         ws.on("error", console.error);
 
         // Set up ElevenLabs connection
-        const setupElevenLabs = async () => {
+        const setupElevenLabs = async (agent_id) => {
           try {
             const signedUrl = await getSignedUrl(agent_id);
             elevenLabsWs = new WebSocket(signedUrl);
