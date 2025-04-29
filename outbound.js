@@ -405,7 +405,7 @@ export default function registerOutboundRoutes(fastify) {
                 callStartTime = Date.now();
                 callSid = msg.start.callSid;
                 customParameters = msg.start.customParameters || {}; // Store parameters
-                const agentId = customParameters.agent_id 
+                const agent_id = customParameters.agent_id 
                 console.log(`[Twilio] conversationId Start event: ${conversationId}`);
 
                 // Determine configuration mode
