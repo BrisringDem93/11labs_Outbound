@@ -70,7 +70,7 @@ export default function registerOutboundRoutes(fastify) {
     if (!number) {
       return reply.code(400).send({ error: "Phone number is required" });
     }
-  
+    
     if (!agent_id) {
       return reply.code(400).send({
           error: "Agent ID is required",
@@ -233,7 +233,7 @@ export default function registerOutboundRoutes(fastify) {
                     console.log(`[ElevenLabs] conversationId changed: ${conversationId}`);
 
                     // Log the call immediately upon receiving metadata
-                    logOutboundCall(streamSid, callSid, idCrm, ELEVENLABS_AGENT_ID, conversationId);
+                    logOutboundCall(streamSid, callSid, idCrm, agent_id, conversationId);
 
                     // Send configuration after receiving metadata
                     if (isConfigMode && configData) {
@@ -429,8 +429,7 @@ export default function registerOutboundRoutes(fastify) {
 
 
                 // Retrieve call configuration data
-                const agentId = customParameters.agent_id || ELEVENLABS_AGENT_ID;
-                console.log(`[Configuration] Using agentId: ${agentId}`);
+                console.log(`[Configuration] Using agentId: ${agent_id}`);
             
                 // Retrieve idCrm from dynamic_variables if in advanced mode, otherwise from legacy customParameters.
                 if (isConfigMode && configData && configData.dynamic_variables) {
