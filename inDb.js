@@ -42,20 +42,43 @@ async function initializeDatabase() {
       id_conversation TEXT NOT NULL,
       call_successful BOOLEAN ,
       transcript_summary TEXT,
-      timestamp TIMESTAMP DEFAULT NOW()
+      timestamp TIMESTAMP DEFAULT NOW(),
+      secretary BOOLEAN DEFAULT FALSE
     )
   `;
 
   const createAiTasksQuery = `
     CREATE TABLE IF NOT EXISTS ai_tasks (
       id SERIAL PRIMARY KEY,
-      id_keap TEXT NOT NULL,
+      id_keap TEXT UNIQUE NOT NULL,
       task_type TEXT NOT NULL,
       due_date TIMESTAMP,
       done BOOLEAN DEFAULT FALSE
-)`; 
+)
+`; 
+
+    const createAiRequestCalls = `
+    CREATE TABLE IF NOT EXISTS aiRequestCalls (
+      id SERIAL PRIMARY KEY,
+      id_keap TEXT NOT NULL,
+      call_sid TEXT NOT NULL,
+      timestamp TIMESTAMP DEFAULT NOW(),
+      checked BOOLEAN DEFAULT FALSE,
+      objective TEXT
+    )
+    `; 
+
+    const createTaskAttemps = `
+    CREATE TABLE IF NOT EXISTS taskAttemps (
+      id_keap TEXT NOT NULL PRIMARY KEY,
+      attempts INTEGER DEFAULT 1,
+      objective TEXT,
+      updated TIMESTAMP DEFAULT NOW()
+    )
+    `; 
 
 
+  
   try {
     await pool.query(createElevenLabsLogsQuery);
     console.log('[DB] Table elevenlabs_logs verified/created successfully.');
@@ -66,8 +89,14 @@ async function initializeDatabase() {
     await pool.query(createResultsCallsQuery);
     console.log('[DB] Table results_calls verified/created successfully.');
     
-    await pool.query(createResultsCallsQuery);
+    await pool.query(createAiTasksQuery);
     console.log('[DB] Table ai_tasks verified/created successfully.');
+
+    await pool.query(createAiRequestCalls);
+    console.log('[DB] Table AiRequestCalls verified/created successfully.');
+
+    await pool.query(createTaskAttemps);
+    console.log('[DB] Table taskAttemps verified/created successfully.');
 
 
   } catch (error) {

@@ -19,11 +19,12 @@ const {
   OUT_CONF_ENDPOINT,
 } = process.env;
 
+
 // Helper function to get signed URL for authenticated conversations
-async function getSignedUrl() {
+async function getSignedUrl(agent_id) {
   try {
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${ELEVENLABS_AGENT_ID}`,
+      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agent_id}`,
       {
         method: "GET",
         headers: {
@@ -64,12 +65,19 @@ export default function registerOutboundRoutes(fastify) {
       first_message,
       dynamic_variables,
       conversation_config_override,
+      agent_id
     } = request.body;
 
     if (!number) {
       return reply.code(400).send({ error: "Phone number is required" });
     }
-
+    
+    if (!agent_id) {
+      return reply.code(400).send({
+          error: "Agent ID is required",
+          requestBody: request.body  // Includi request.body nella risposta
+      });
+  }
     try {
 
       // Determine whether to use advanced or basic configuration
@@ -77,7 +85,7 @@ export default function registerOutboundRoutes(fastify) {
         // Advanced format: use dynamic_variables and conversation_config_override
 
         const configPayload = {
-          dynamic_variables: dynamic_variables || {},
+          dynamic_variables: {...dynamic_variables, agent_id},
           conversation_config_override: conversation_config_override || {},
         };
 
@@ -87,17 +95,30 @@ export default function registerOutboundRoutes(fastify) {
         ).toString("base64");
         const urlSafeConfig = encodeURIComponent(encodedConfig);
 
-        const call = await twilioClient.calls.create({
-          from: TWILIO_PHONE_NUMBER,
-          to: number,
-          url: `https://${request.headers.host}/outbound-call-twiml?config=${urlSafeConfig}`,
-        });
+        try {
+          const call = await twilioClient.calls.create({
+            from: TWILIO_PHONE_NUMBER,
+            to: number,
+            url: `https://${request.headers.host}/outbound-call-twiml?config=${urlSafeConfig}`,
+          });
+        
+          console.log(`[API] Outbound call initiated successfully - CallSid: ${call.sid}`);
+          reply.send({
+            success: true,
+            message: "Call initiated successfully",
+            callSid: call.sid,
+          });
+        } catch (error) {
+          console.error(`[API ERROR] Failed to initiate outbound call: ${error.message}`);
+          console.error(`[API ERROR] Details: ${JSON.stringify(error, null, 2)}`);
+        
+          reply.code(403).send({
+            success: false,
+            error: "Failed to initiate call",
+            details: error.message,
+          });
+        }
 
-        reply.send({
-          success: true,
-          message: "Call initiated with advanced configuration",
-          callSid: call.sid,
-        });
       } else {
 
         // Legacy format: use only prompt and first_message
@@ -180,7 +201,7 @@ export default function registerOutboundRoutes(fastify) {
         let idCrm = null;
         let callStartTime = Date.now();
         let conversationId = "";
-        console.log(`[Initialization] conversationId declared: ${conversationId}`);
+
 
 
 
@@ -188,9 +209,9 @@ export default function registerOutboundRoutes(fastify) {
         ws.on("error", console.error);
 
         // Set up ElevenLabs connection
-        const setupElevenLabs = async () => {
+        const setupElevenLabs = async (agent_id) => {
           try {
-            const signedUrl = await getSignedUrl();
+            const signedUrl = await getSignedUrl(agent_id);
             elevenLabsWs = new WebSocket(signedUrl);
 
             elevenLabsWs.on("open", () => {
@@ -213,7 +234,7 @@ export default function registerOutboundRoutes(fastify) {
                     console.log(`[ElevenLabs] conversationId changed: ${conversationId}`);
 
                     // Log the call immediately upon receiving metadata
-                    logOutboundCall(streamSid, callSid, idCrm, ELEVENLABS_AGENT_ID, conversationId);
+                    logOutboundCall(streamSid, callSid, idCrm, agent_id, conversationId);
 
                     // Send configuration after receiving metadata
                     if (isConfigMode && configData) {
@@ -367,8 +388,7 @@ export default function registerOutboundRoutes(fastify) {
           }
         };
 
-        // Set up ElevenLabs connection
-        setupElevenLabs();
+
 
         // Handle messages from Twilio
         ws.on("message", (message) => {
@@ -407,11 +427,14 @@ export default function registerOutboundRoutes(fastify) {
                   }
                 }
 
+                const agent_id = configData?.dynamic_variables?.agent_id;
 
                 // Retrieve call configuration data
-                const agentId = customParameters.agent_id || ELEVENLABS_AGENT_ID;
-                console.log(`[Configuration] Using agentId: ${agentId}`);
-            
+                console.log(`[Configuration] Using agentId: ${agent_id}`);
+                
+                // Set up ElevenLabs connection
+                setupElevenLabs(agent_id);
+
                 // Retrieve idCrm from dynamic_variables if in advanced mode, otherwise from legacy customParameters.
                 if (isConfigMode && configData && configData.dynamic_variables) {
                   idCrm = configData.dynamic_variables.id_keap || null;
