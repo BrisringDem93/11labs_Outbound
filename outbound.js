@@ -100,6 +100,7 @@ export default function registerOutboundRoutes(fastify) {
             from: TWILIO_PHONE_NUMBER,
             to: number,
             url: `https://${request.headers.host}/outbound-call-twiml?config=${urlSafeConfig}`,
+            record: true,
           });
         
           console.log(`[API] Outbound call initiated successfully - CallSid: ${call.sid}`);
@@ -131,6 +132,7 @@ export default function registerOutboundRoutes(fastify) {
           from: TWILIO_PHONE_NUMBER,
           to: number,
           url: url,
+          record: true,
         });
 
         reply.send({
